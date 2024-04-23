@@ -1,43 +1,55 @@
-//package com.example.library.service;
-//
-//import com.example.library.LoginForm;
-//import com.example.library.security.PasswordEncoderConfig;
-//import io.jsonwebtoken.Jwts;
-//import io.jsonwebtoken.SignatureAlgorithm;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.stereotype.Service;
-//
-//import java.util.Date;
-//
-//@Service
-//public class LoginService {
-//
-//    private final PasswordEncoder passwordEncoder;
-//
-//    @Value("${jwt.token.key}")
-//    private String key;
-//
-//    @Autowired
-//    public LoginService(PasswordEncoder passwordEncoder/*, UserRepository userRepository*/){
-//        this.passwordEncoder = passwordEncoder;
-//        //this.UserRepository = userRepository;
-//    }
-//    public String login(LoginForm loginForm){
-//        //User user = userRepository.getUserByLogin(loginForm.getForm());
-//        if(passwordEncoder.matches(loginForm.getPassword(),/*user.getPassword()*/"")){
-//            long timeMillis = System.currentTimeMillis();
-//            String token = Jwts.builder()
-//                    .issuedAt(new Date(timeMillis))
-//                    .expiration(new Date(timeMillis+5*60*1000))
-//                    .claim("id", "userId")
-//                    .claim("userRole", "ROLE_")
-//                    .signWith(SignatureAlgorithm.HS256, key)
-//                    .compact();
-//            return token;
-//        }else{
-//            return null;
-//        }
-//    }
-//}
+package com.example.library.service;
+import com.example.library.dto.LoginDto;
+import com.example.library.dto.LoginResponseDto;
+import com.example.library.dto.RegisterDto;
+import com.example.library.dto.RegisterResponseDto;
+import com.example.library.entity.Login;
+import com.example.library.entity.User;
+import com.example.library.repository.LoginRepository;
+import com.example.library.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+public class LoginService {
+
+    private final LoginRepository loginRepository;
+    private final UserRepository userRepository;
+    private final JWTService jwtService;
+    private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    public LoginService(LoginRepository loginRepository, UserRepository userRepository, JWTService jwtService, PasswordEncoder passwordEncoder) {
+        this.loginRepository = loginRepository;
+        this.userRepository = userRepository;
+        this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    public RegisterResponseDto register(RegisterDto dto) {
+        User user = new User();
+        user.setEmail(dto.getEmail());
+        userRepository.save(user);
+
+        Login login = new Login();
+        login.setPassword(passwordEncoder.encode(dto.getPassword()));
+        login.setUsername(dto.getUsername());
+        login.setRole(dto.getRole());
+        login.setUser(user);
+
+        loginRepository.save(login);
+
+        return new RegisterResponseDto(login.getId(), login.getUsername(), login.getRole());
+    }
+    public LoginResponseDto login(LoginDto dto) {
+        Login login = loginRepository.findByUsername(dto.getUsername()).orElseThrow(RuntimeException::new);
+        if(!passwordEncoder.matches(dto.getPassword(), login.getPassword())) {
+            throw new RuntimeException();
+        }
+        String token = jwtService.generateToken(login);
+        return new LoginResponseDto(token);
+    }
+
+}
