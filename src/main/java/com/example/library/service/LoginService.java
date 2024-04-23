@@ -5,12 +5,16 @@ import com.example.library.dto.RegisterDto;
 import com.example.library.dto.RegisterResponseDto;
 import com.example.library.entity.Login;
 import com.example.library.entity.User;
+import com.example.library.error.BookNotFound;
+import com.example.library.error.UserAlreadyExists;
+import com.example.library.error.UsernameNotFound;
 import com.example.library.repository.LoginRepository;
 import com.example.library.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class LoginService {
@@ -29,6 +33,12 @@ public class LoginService {
     }
 
     public RegisterResponseDto register(RegisterDto dto) {
+        Optional<Login> existingLogin = loginRepository.findByUsername(dto.getUsername());
+
+        if (existingLogin.isPresent()) {
+            throw UserAlreadyExists.create(dto.getUsername());
+        }
+
         User user = new User();
         user.setEmail(dto.getEmail());
         userRepository.save(user);
@@ -43,7 +53,14 @@ public class LoginService {
 
         return new RegisterResponseDto(login.getId(), login.getUsername(), login.getRole());
     }
+
     public LoginResponseDto login(LoginDto dto) {
+        Optional<Login> existingLogin = loginRepository.findByUsername(dto.getUsername());
+
+        if (existingLogin.isEmpty()) {
+            throw UsernameNotFound.create(dto.getUsername());
+        }
+
         Login login = loginRepository.findByUsername(dto.getUsername()).orElseThrow(RuntimeException::new);
         if(!passwordEncoder.matches(dto.getPassword(), login.getPassword())) {
             throw new RuntimeException();

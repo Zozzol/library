@@ -1,13 +1,9 @@
 package com.example.library.service;
 
-import java.util.Iterator;
-import java.util.List;
-
+import com.example.library.error.BookNotFound;
 import com.example.library.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 import com.example.library.entity.Book;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 
 
@@ -26,7 +22,7 @@ import org.springframework.stereotype.Service;
     }
 
     public Book getOne(int id) {
-        return bookRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
+        return bookRepository.findById(id).orElseThrow(() -> BookNotFound.create(id));
     }
 
     public Book create(Book book) {
