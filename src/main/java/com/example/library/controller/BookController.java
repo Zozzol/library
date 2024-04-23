@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/book")
+//@PreAuthorize("permitAll()")
 public class BookController {
     private final BookService bookService;
 
@@ -40,6 +41,7 @@ public class BookController {
 
     @GetMapping("/getOne/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('READER')")
+
     public @ResponseBody Book getOne(@PathVariable int id) {
         return bookService.getOne(id);
     }
