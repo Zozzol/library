@@ -1,16 +1,6 @@
-package com.example.library.entity;
+package com.example.library.dto.book;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-
-import java.util.List;
-
-
-@Entity
-public class Book {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+public class BookRequestDto {
     private Integer id;
     private String isbn;
     private String title;
@@ -19,11 +9,7 @@ public class Book {
     private Integer publishYear;
     private Integer availableCopies;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "bookLoan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Loan> bookLoanList;
-
-
+    // Getters and Setters
     public Integer getId() {
         return id;
     }
@@ -79,13 +65,4 @@ public class Book {
     public void setAvailableCopies(Integer availableCopies) {
         this.availableCopies = availableCopies;
     }
-
-    public List<Loan> getBookLoanList() {
-        return bookLoanList;
-    }
-
-    public void setBookLoanList(List<Loan> bookLoanList) {
-        this.bookLoanList = bookLoanList;
-    }
-
 }

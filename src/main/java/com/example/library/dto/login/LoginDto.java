@@ -1,14 +1,10 @@
-package com.example.library.dto;
+package com.example.library.dto.login;
 
 public class LoginDto {
     private String username;
     private String password;
 
-    public LoginDto(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
-
+    // Getters and Setters
     public String getUsername() {
         return username;
     }

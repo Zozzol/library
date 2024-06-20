@@ -1,16 +1,16 @@
-package com.example.library.error;
+package com.example.library.error.book;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-public class BookNotFound extends RuntimeException {
+public class BookNotFoundException extends RuntimeException {
 
-    private BookNotFound(String message) {
+    public BookNotFoundException(String message) {
         super(message);
     }
 
     public static ResponseStatusException create(int id) {
-        BookNotFound exception = new BookNotFound(String.format("Book with ID %d not found.", id));
+        BookNotFoundException exception = new BookNotFoundException(String.format("Book with ID %d not found.", id));
         return new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage(), exception);
     }
 }

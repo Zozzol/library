@@ -1,6 +1,7 @@
 package com.example.library.service;
+
 import com.example.library.commonTypes.UserRole;
-import com.example.library.entity.Login;
+import com.example.library.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -21,15 +22,15 @@ public class JWTService {
     @Value("9a4f2c8d3b7a1e6f45c8a0b3f267d8b1d4e6f3c8a9d2b5f8e3a9c8b5f6v8a3d9")
     private String jwtSigningKey;
 
-    public String generateToken(Login userDetails) {
+    public String generateToken(User userDetails) {
         return generateToken(new HashMap<>(), userDetails);
     }
 
-    private String generateToken(HashMap<String, Object> extraClaims, Login userDetails) {
+    private String generateToken(HashMap<String, Object> extraClaims, User userDetails) {
         extraClaims.put("role", userDetails.getRole());
         return Jwts.builder()
                 .claims(extraClaims)
-                .subject(userDetails.getUsername())
+                .subject(userDetails.getLogin())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + tokenLifetime))
                 .signWith(getSigningKey())
@@ -43,10 +44,12 @@ public class JWTService {
             return false;
         }
     }
+
     public UserRole extractRole(String token) {
         String roleString = extractClaim(token, claims -> claims.get("role", String.class));
         return UserRole.valueOf(roleString);
     }
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -61,9 +64,9 @@ public class JWTService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload();
+        return Jwts.parser().verifyWith(getSigningKey())
+                .build().parseSignedClaims(token).getPayload();
     }
-
 
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());

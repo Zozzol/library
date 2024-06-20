@@ -1,56 +1,86 @@
 package com.example.library.entity;
 
+import com.example.library.commonTypes.UserRole;
 import jakarta.persistence.*;
 
-@Entity
-@Table(name = "users", schema = "library")
-public class User {
+import java.util.List;
 
+
+
+@Entity
+public class User {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Basic
-    @Column(name = "name")
-    private String name;
+    @Column(name = "login", unique = true, nullable = false)
+    private String login;
 
     @Basic
-    @Column(name = "email")
-    private String email;
+    @Column(name = "password", nullable = false)
+    private String password;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Login login;
+    @Basic
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private UserRole role;
 
-    public Long getId() {
+
+    @Basic
+    @Column(name = "fullName")
+    private String fullName;
+
+    @OneToMany(mappedBy = "userLoan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Loan> bookLoanList;
+
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Login getLogin() {
+    public String getLogin() {
         return login;
     }
 
-    public void setLogin(Login login) {
+    public void setLogin(String login) {
         this.login = login;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public List<Loan> getBookLoanList() {
+        return bookLoanList;
+    }
+
+    public void setBookLoanList(List<Loan> bookLoanList) {
+        this.bookLoanList = bookLoanList;
     }
 }
