@@ -31,7 +31,7 @@ public class LoginService {
 
 
     public LoginResponseDto userLogin(LoginDto loginDto) {
-        User user = userRepository.findByLogin(loginDto.getUsername());
+        User user = userRepository.findByLogin(loginDto.getLogin());
 
         if (user != null && passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             long timeMillis = System.currentTimeMillis();

@@ -25,7 +25,7 @@ public class UserController {
     }
 
     @PostMapping("/add")
-    //@PreAuthorize("hasRole('ROLE_LIBRARIAN')")
+    @PreAuthorize("hasRole('ROLE_LIBRARIAN')")
     public ResponseEntity<String> addUser(@RequestBody UserRequestDto userRequestDto) {
         return userService.addUser(userRequestDto);
     }
