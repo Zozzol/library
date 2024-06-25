@@ -47,12 +47,12 @@ public class LoanService {
         User user = userRepository.findById(loanRequestDto.getUserId())
                 .orElseThrow(() -> LoanNotFoundException.create(loanRequestDto.getUserId()));
         Book book = bookRepository.findById(loanRequestDto.getBookId())
-                .orElseThrow(() -> LoanNotFoundException.create(loanRequestDto.getUserId()));
+                .orElseThrow(() -> LoanNotFoundException.create(loanRequestDto.getBookId()));
 
         Loan loan = new Loan();
         loan.setLoanStartDate(loanRequestDto.getLoanStartDate());
         loan.setLoanEndDate(loanRequestDto.getLoanEndDate());
-        loan.setBookReturnDate(loanRequestDto.getBookReturnDate());
+        loan.setBookReturnDate(null);  // Initially set to null
         loan.setUserLoan(user);
         loan.setBookLoan(book);
         loanRepository.save(loan);
@@ -100,7 +100,7 @@ public class LoanService {
             }
             loan.setBookReturnDate(bookReturnDate);
             loanRepository.save(loan);
-            return new ResponseEntity<>("Book return date: " + bookReturnDate + " ", HttpStatus.OK);
+            return new ResponseEntity<>("Book return date: " + bookReturnDate + " updated successfully", HttpStatus.OK);
         } else {
             throw LoanNotFoundException.create(loanID);
         }
