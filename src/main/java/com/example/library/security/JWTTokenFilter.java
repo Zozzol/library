@@ -34,7 +34,7 @@ public class JWTTokenFilter extends OncePerRequestFilter {
             final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
             final String jwt;
 
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            if (authHeader != null && !authHeader.startsWith("Bearer ")) {
                 filterChain.doFilter(request, response);
                 return;
             }

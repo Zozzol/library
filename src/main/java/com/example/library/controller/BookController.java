@@ -42,7 +42,7 @@ public class BookController {
     }
 
     @GetMapping("/getBook/{bookId}")
-    @PreAuthorize("hasAnyRole('ROLE_LIBRARIAN, ROLE_READER')")
+    @PreAuthorize("hasAnyRole('ROLE_LIBRARIAN','ROLE_READER')")
     public @ResponseBody Optional<BookResponseDto> getBook(@PathVariable Integer bookId) {
         return bookService.getBook(bookId);
     }

@@ -19,14 +19,16 @@ public class LoginService {
 
     private UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JWTService jwtService;
 
     @Value("${jwt.token.key}")
     private String key;
 
     @Autowired
-    public LoginService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public LoginService(UserRepository userRepository, PasswordEncoder passwordEncoder, JWTService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
 
@@ -34,14 +36,7 @@ public class LoginService {
         User user = userRepository.findByLogin(loginDto.getLogin());
 
         if (user != null && passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
-            long timeMillis = System.currentTimeMillis();
-            String token = Jwts.builder()
-                    .issuedAt(new Date(timeMillis))
-                    .expiration(new Date(timeMillis + 5 * 60 * 1000))
-                    .claim("id", user.getId())
-                    .claim("role", user.getRole())
-                    .signWith(SignatureAlgorithm.HS256, key)
-                    .compact();
+            var token = jwtService.generateToken(user);
 
             return new LoginResponseDto(token, user.getRole());
         } else {

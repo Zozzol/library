@@ -3,21 +3,11 @@ package com.example.library.dto.loan;
 import java.sql.Date;
 
 public class LoanRequestDto {
-    private Integer id;
     private Date loanStartDate;
     private Date loanEndDate;
     private Date bookReturnDate;
     private Integer userId;
     private Integer bookId;
-
-    // Getters and Setters
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public Date getLoanStartDate() {
         return loanStartDate;

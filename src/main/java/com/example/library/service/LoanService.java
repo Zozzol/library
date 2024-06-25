@@ -2,10 +2,12 @@ package com.example.library.service;
 
 import com.example.library.dto.loan.LoanRequestDto;
 import com.example.library.dto.loan.LoanResponseDto;
+import com.example.library.entity.Book;
 import com.example.library.entity.Loan;
 import com.example.library.entity.User;
 import com.example.library.error.loan.LoanAlreadyExistsException;
 import com.example.library.error.loan.LoanNotFoundException;
+import com.example.library.repository.BookRepository;
 import com.example.library.repository.LoanRepository;
 import com.example.library.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.util.List;
@@ -25,39 +28,35 @@ import java.util.stream.StreamSupport;
 public class LoanService {
     private final LoanRepository loanRepository;
     private final UserRepository userRepository;
+    private final BookRepository bookRepository;
 
     @Autowired
-    public LoanService(LoanRepository loanRepository, UserRepository userRepository) {
+    public LoanService(LoanRepository loanRepository, UserRepository userRepository, BookRepository bookRepository) {
         this.loanRepository = loanRepository;
         this.userRepository = userRepository;
+        this.bookRepository = bookRepository;
     }
 
     public ResponseEntity<String> addLoan(LoanRequestDto loanRequestDto) {
-        Optional<Loan> existingLoan = loanRepository.findById(loanRequestDto.getId());
-        if (existingLoan.isPresent()) {
-            throw LoanAlreadyExistsException.create(loanRequestDto.getId());
-        } else {
-            if (loanRequestDto.getLoanEndDate().before(loanRequestDto.getLoanStartDate())) {
-                return new ResponseEntity<>("End date should be after start date.", HttpStatus.BAD_REQUEST);
-            }
-            if (loanRequestDto.getUserId() == null || loanRequestDto.getBookId() == null) {
-                return new ResponseEntity<>("User/Book ID cannot be null.", HttpStatus.BAD_REQUEST);
-            }
-            Optional<User> userOptional = userRepository.findById(loanRequestDto.getUserId());
-            if (userOptional.isPresent()) {
-                User user = userOptional.get();
-                Loan loan = new Loan();
-                loan.setId(loanRequestDto.getId());
-                loan.setLoanStartDate(loanRequestDto.getLoanStartDate());
-                loan.setLoanEndDate(loanRequestDto.getLoanEndDate());
-                loan.setBookReturnDate(loanRequestDto.getBookReturnDate());
-                loan.setUserLoan(user);
-                loanRepository.save(loan);
-                return new ResponseEntity<>("Loan added successfully", HttpStatus.OK);
-            } else {
-                throw LoanNotFoundException.create(loanRequestDto.getUserId());
-            }
+        if (loanRequestDto.getLoanEndDate().before(loanRequestDto.getLoanStartDate())) {
+            return new ResponseEntity<>("End date should be after start date.", HttpStatus.BAD_REQUEST);
         }
+        if (loanRequestDto.getUserId() == null || loanRequestDto.getBookId() == null) {
+            return new ResponseEntity<>("User/Book ID cannot be null.", HttpStatus.BAD_REQUEST);
+        }
+        User user = userRepository.findById(loanRequestDto.getUserId())
+                .orElseThrow(() -> LoanNotFoundException.create(loanRequestDto.getUserId()));
+        Book book = bookRepository.findById(loanRequestDto.getBookId())
+                .orElseThrow(() -> LoanNotFoundException.create(loanRequestDto.getUserId()));
+
+        Loan loan = new Loan();
+        loan.setLoanStartDate(loanRequestDto.getLoanStartDate());
+        loan.setLoanEndDate(loanRequestDto.getLoanEndDate());
+        loan.setBookReturnDate(loanRequestDto.getBookReturnDate());
+        loan.setUserLoan(user);
+        loan.setBookLoan(book);
+        loanRepository.save(loan);
+        return new ResponseEntity<>("Loan added successfully", HttpStatus.OK);
     }
 
     public ResponseEntity<String> deleteLoan(Integer loanId) {
@@ -77,13 +76,13 @@ public class LoanService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public List<LoanResponseDto> getMyLoans() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
-            String id = (String) authentication.getPrincipal();
-            Optional<User> userOptional = userRepository.findById(Integer.valueOf(id));
-            if (userOptional.isPresent()) {
-                User user = userOptional.get();
+            String username = (String) authentication.getPrincipal();
+            User user = userRepository.findByLogin(username);
+            if (user != null) {
                 return user.getBookLoanList().stream()
                         .map(loan -> new LoanResponseDto(loan.getId(), loan.getLoanStartDate(), loan.getLoanEndDate(), loan.getBookReturnDate(), loan.getUserLoan().getId(), loan.getBookLoan().getId()))
                         .collect(Collectors.toList());
